@@ -9,7 +9,7 @@ namespace GameBook.Data.Context
         {
             //Arrumar essa conexão, colocar ele em um XML parecido com o da MAC
             // Configurar a string de conexão aqui
-            optionsBuilder.UseSqlServer("Data Source=DESKTOP-EEROL80;Initial Catalog=GameBook;Integrated Security=false;");
+            optionsBuilder.UseSqlServer("Data Source=DESKTOP-EEROL80;Initial Catalog=GameBook;Integrated Security=true; Encrypt=False;");
         }
 
         public DbSet<Usuario> Usuario { get; set; }
