@@ -1,8 +1,8 @@
-﻿using GameBook.Biz.Interfaces;
-using GameBook.Data.Context;
+﻿using GameBook.Data.Context;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
+using GameBook.Biz.IRepositories.Base;
 
 namespace GameBook.Biz.Repositories
 {

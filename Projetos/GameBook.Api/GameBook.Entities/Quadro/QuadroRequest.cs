@@ -1,8 +1,8 @@
-﻿namespace GameBook.Entities.RequestsViewModel
+﻿namespace GameBook.Entities.Quadro
 {
-    public class QuadroRequestViewModel
+    public class QuadroRequest
     {
-        public QuadroRequestViewModel(string nome, int idUsuario, int idCategoriaQuadro)
+        public QuadroRequest(string nome, int idUsuario, int idCategoriaQuadro)
         {
             Nome = nome;
             IdUsuario = idUsuario;

@@ -12,20 +12,20 @@ namespace GameBook.Data.Models
 
         public JogoQuadro(int idQuadro, int idJogo, bool ativo, DateTime criacao, DateTime? ultimaAlteracao, string responsavel)
         {
-            IdQuadro = idQuadro;
-            IdJogo = idJogo;
-            Ativo = ativo;
-            Criacao = criacao;
-            UltimaAlteracao = ultimaAlteracao;
-            Responsavel = responsavel;
+            Id_Quadro = idQuadro;
+            Id_Jogo = idJogo;
+            Fl_Ativo = ativo;
+            Dt_Criacao = criacao;
+            Dt_UltimaAlteracao = ultimaAlteracao;
+            Ds_Responsavel = responsavel;
         }
 
         public int Id { get; set; }
-        public int IdQuadro { get; set; }
-        public int IdJogo { get; set; }
-        public bool Ativo { get; set; }
-        public DateTime Criacao { get; set; }
-        public DateTime? UltimaAlteracao { get; set; }
-        public string Responsavel { get; set; }
+        public int Id_Quadro { get; set; }
+        public int Id_Jogo { get; set; }
+        public bool Fl_Ativo { get; set; }
+        public DateTime Dt_Criacao { get; set; }
+        public DateTime? Dt_UltimaAlteracao { get; set; }
+        public string Ds_Responsavel { get; set; }
     }
 }

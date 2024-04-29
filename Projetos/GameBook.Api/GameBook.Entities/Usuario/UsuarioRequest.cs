@@ -1,8 +1,8 @@
-﻿namespace GameBook.Entities.RequestsViewModel
+﻿namespace GameBook.Entities.Usuario
 {
-    public class UsuarioRequestViewModel
+    public class UsuarioRequest
     {
-        public UsuarioRequestViewModel(string nome, string documento, string email)
+        public UsuarioRequest(string nome, string documento, string email)
         {
             Nome = nome;
             Documento = documento;

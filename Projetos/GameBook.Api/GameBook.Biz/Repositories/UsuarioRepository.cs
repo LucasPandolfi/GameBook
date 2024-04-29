@@ -1,104 +1,153 @@
-﻿using GameBook.Biz.Interfaces;
-using GameBook.Data.Context;
+﻿using FluentValidation;
+using GameBook.Biz.Interfaces;
+using GameBook.Biz.Mappers;
 using GameBook.Data.Models;
-using GameBook.Entities.RequestsViewModel;
+using GameBook.Entities;
+using GameBook.Entities.Usuario;
 
 namespace GameBook.Biz.Repositories
 {
     public class UsuarioRepository : GenericRepository<Usuario>, IUsuarioRepository
     {
-        public UsuarioRepository(GameBookContext context) : base(context)
+        private readonly GenericRepository<Usuario> _genericRepository;
+
+        private readonly IValidator<Usuario> _validator;
+
+
+        public UsuarioRepository(GenericRepository<Usuario> genericRepository)
         {
+            _genericRepository = genericRepository;
         }
 
-        public UsuarioRepository() : base(new GameBookContext())
+        public UsuarioRepository()
         {
+            _genericRepository = new GenericRepository<Usuario>();
         }
 
-        GameBookContext gameBookCtx = new GameBookContext();
-        GenericRepository<Usuario> genericCtx = new GenericRepository<Usuario>();
-
-        public List<Usuario> ListarTodosUsuarios()
+        public List<UsuarioResponse> ListarTodosUsuarios()
         {
-            return genericCtx.Listar().ToList();
+            List<Usuario> usuariosEncontrados = _genericRepository.Listar().ToList();
+
+            if (usuariosEncontrados == null) return new();
+
+            List<UsuarioResponse> usuariosConvertidos = UsuarioResponseMapper.Converter(usuariosEncontrados).ToList();
+
+            return usuariosConvertidos;
         }
 
-        public List<Usuario> ListarTodosUsuariosAtivos()
+        public List<UsuarioResponse> ListarTodosUsuariosAtivos()
         {
-            return genericCtx.ListarAtivos().ToList();
+            List<Usuario> usuariosEncontrados = _genericRepository.ListarAtivos().ToList();
+            if (usuariosEncontrados == null) return new();
+
+            List<UsuarioResponse> usuariosConvertidos = UsuarioResponseMapper.Converter(usuariosEncontrados).ToList();
+
+            return usuariosConvertidos;
         }
 
-        public Usuario ListarUsuarioPorId(int id)
+        public UsuarioResponse? ListarUsuarioPorIdUsuario(int idUsuario)
         {
-            return genericCtx.ListarPor(c => c.Id == id).FirstOrDefault();
+            Usuario? usuarioEncontrado = _genericRepository.ListarPor(c => c.Id == idUsuario).FirstOrDefault();
+            if(usuarioEncontrado == null) return null;
+
+            UsuarioResponse usuarioConvertido = UsuarioResponseMapper.Converter(usuarioEncontrado);
+
+            return usuarioConvertido;
         }
 
-        public void AdicionarUsuario(UsuarioRequestViewModel usuario, string responsavel)
+        public UsuarioResponse? ListarUsuarioPorDocumento(string documento)
+        {
+            Usuario? usuarioEncontrado = _genericRepository.ListarPor(c => c.Ds_Documento == documento).FirstOrDefault();
+            if (usuarioEncontrado == null) return null;
+
+            UsuarioResponse usuarioConvertido = UsuarioResponseMapper.Converter(usuarioEncontrado);
+
+            return usuarioConvertido;
+        }
+
+        public Resposta<UsuarioResponse> AdicionarUsuario(UsuarioRequest usuario, string responsavel)
         {
             try
             {
-                /*Criar um método para validar se os dados passados estão corretos. Ex: Documento... talvez o fluentValidation*/
-                Usuario usuarioConvertido = Converter(usuario);
+                if(UsuarioExiste(usuario.Documento))
+                    return new Entities.Resposta<UsuarioResponse>(false, $"O seguinte documento {usuario.Documento} já possui cadastro no sistema", null);
 
-                genericCtx.Adicionar(usuarioConvertido, responsavel);
+                Usuario usuarioModel = UsuarioRequestMapper.Converter(usuario);
 
-                genericCtx.Commit();
-                genericCtx.Dispose();
+                Usuario usuarioAdicionado = _genericRepository.Adicionar(usuarioModel, responsavel);
+
+                _genericRepository.Commit();
+                _genericRepository.Dispose();
+
+                UsuarioResponse resp = UsuarioResponseMapper.Converter(usuarioAdicionado);
+
+                return new Entities.Resposta<UsuarioResponse>(true, "", resp);
             }
             catch (Exception err)
             {
                 /*Pensar em alguma forma de tratar essas Exceptions, talvez um banco de log?*/
-                throw;
-            }  
+                Console.WriteLine(err);
+                return new Entities.Resposta<UsuarioResponse>(false, $"Error: {err.Message}", null);
+            }
         }
 
-        public void EditarUsuario(UsuarioRequestViewModel usuario, string responsavel)
+        public Resposta<UsuarioResponse> EditarUsuario(UsuarioRequest usuario, string responsavel)
         {
             try
             {
-                /*Criar um método para validar se os dados passados estão corretos. Ex: Documento... talvez o fluentValidation*/
-                Usuario usuarioConvertido = Converter(usuario);
+                UsuarioResponse? usuarioEncontrado = ListarUsuarioPorDocumento(usuario.Documento);
+                if (usuarioEncontrado == null)
+                    return new Entities.Resposta<UsuarioResponse>(false, $"O usuário com o seguinte documento {usuario.Documento} não possui cadastro no sistema", null);
 
-                genericCtx.Editar(usuarioConvertido, responsavel);
+                Usuario usuarioModel = UsuarioRequestMapper.Converter(usuario);
 
-                genericCtx.Commit();
+                Usuario usuarioEditado = _genericRepository.Editar(usuarioModel, responsavel);
 
-                /*Poderia usuar o baseCtx.Dispose(); aqui?*/
+                _genericRepository.Commit();
+                _genericRepository.Dispose();
+
+                UsuarioResponse resp = UsuarioResponseMapper.Converter(usuarioEditado);
+
+                return new Entities.Resposta<UsuarioResponse>(true, "", resp);
             }
             catch (Exception err)
             {
-                /*Pensar em alguma forma de tratar essas Exceptions, talvez um banco de log?*/
-                throw;
+                Console.WriteLine(err);
+                return new Entities.Resposta<UsuarioResponse>(false, $"Error: {err.Message}", null);
             }
         }
 
-        public void DeletarUsuario(int id, string responsavel)
+        public bool DeletarUsuario(int id, string responsavel)
         {
             try
             {
-                genericCtx.Remover(id, responsavel);
+                Usuario usuarioDeletado = _genericRepository.Remover(id, responsavel);
 
-                genericCtx.Commit();
+                _genericRepository.Commit();
+                _genericRepository.Dispose();
 
-                /*Poderia usuar o baseCtx.Dispose(); aqui?*/
+                if(usuarioDeletado == null)
+                    return false;
+
+                return true;
             }
             catch (Exception err)
             {
-                /*Pensar em alguma forma de tratar essas Exceptions, talvez um banco de log?*/
-                throw;
+                Console.WriteLine(err);
+                return false;
             }
         }
 
-        public Usuario Converter(UsuarioRequestViewModel usuario)
+        public bool UsuarioExiste(string documento)
         {
-            if (usuario == null) return null;
+            if(documento == null)
+                return false;
 
-            return new Usuario
-            {
-                Nome = usuario.Nome,
-                Documento = usuario.Documento,
-                Email = usuario.Email,
-            };
+            Usuario? usuarioEncontrado = _genericRepository.ListarPor(c => c.Ds_Documento == documento).FirstOrDefault();
+
+            if (usuarioEncontrado == null) return false;
+
+            return true;
         }
     }
 }
